@@ -1,11 +1,36 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from fitter import Fitter
 
 # Constant 
 
 nu = 0.0003 #cm^2/s
 h = 1 #cm
+
+# Fonctiun 
+
+def repartition_speed(u,precision=0.01):
+    vitesse = np.sort(u)
+    n = len(vitesse)
+    v_max = vitesse[n-1]
+    v_min = vitesse[0]
+    repartition = np.linspace(v_min,v_max,int((v_max-v_min)/precision))
+    return repartition
+
+def pdf_speed(u,precision=0.01):
+    vitesse = np.sort(u)
+    n = len(vitesse)
+    v_max = vitesse[n-1]
+    v_min = vitesse[0]
+    repartition = np.linspace(v_min,v_max,int((v_max-v_min)/precision))
+    pdf = np.zeros(len(repartition))
+    for vit in vitesse:
+        for i in range(len(repartition)):
+            if vit > repartition[i] and vit < repartition[i+1]:
+                pdf[i] += 1
+                break
+    return pdf
 
 # Read data from file 'signal_canal3280_48.txt'
 
@@ -16,6 +41,8 @@ temps = np.array(data['temps']) #s
 u = np.array(data['u']) #cm/s
 v = np.array(data['v'])
 w = np.array(data['w'])
+
+print(repartition_speed)
 
 # Calcul
 
@@ -41,9 +68,12 @@ print('std_w = ', std_w)
 # Pdf of speed
 
 plt.figure(0)
-plt.hist(u[1000:10000], bins=100, density=True, label='u')
+plt.hist(u[1000:30000], bins=100, density=True, label='u')
 plt.xlabel('vitesse '+ r'$(cm.s^{-1}$)')
 plt.ylabel('pdf')
+f = Fitter(u[1000:30000],distributions= ['norm'])
+f.fit()
+f.summary()
 plt.legend()
 
 # cumul of pdf
@@ -70,6 +100,10 @@ plt.plot(temps[1000:10000], w[1000:10000], 'b', label='w '+ r'$(cm.s^{-1}$)')
 plt.xlabel('temps (s)')
 plt.ylabel('vitesse '+ r'$(cm.s^{-1}$)')
 plt.legend()
+
+plt.figure(3)
+plt.plot(repartition_speed(u[1000:10000]), pdf_speed(u[1000:10000]), 'r', label='u '+ r'$(cm.s^{-1}$)')
+
 plt.show()
 
 
